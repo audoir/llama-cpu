@@ -1,0 +1,66 @@
+# Verify that you are using an Arm-based server
+
+uname -m
+
+# Install dependencies
+
+sudo apt update
+sudo apt install make cmake -y
+sudo apt install gcc g++ -y
+sudo apt install build-essential -y
+
+# Download and build llama.cpp
+
+git clone https://github.com/ggerganov/llama.cpp
+cd llama.cpp
+make GGML_NO_LLAMAFILE=1 -j$(nproc)
+
+# Check that llama.cpp has built correctly
+
+./llama-cli -h
+
+# Install the Python packages, activate virtual environment
+
+sudo apt install python-is-python3 python3-pip python3-venv -y
+python -m venv venv
+source venv/bin/activate
+
+# Install the huggingface_hub python library and download model
+
+pip install huggingface_hub
+huggingface-cli download TheBloke/Llama-2-7b-Chat-GGUF llama-2-7b-chat.Q4_0.gguf --local-dir . --local-dir-use-symlinks False
+
+# Re-quantize the model weights
+
+./llama-quantize --allow-requantize llama-2-7b-chat.Q4_0.gguf llama-2-7b-chat.Q4_0_8_8.gguf Q4_0_8_8
+
+# Run a prompt on re-quantized model
+
+./llama-cli -m llama-2-7b-chat.Q4_0_8_8.gguf -p "Building a visually appealing website can be done in ten simple steps:" -n 64 -t 2
+
+# Run a prompt on original model
+
+./llama-cli -m llama-2-7b-chat.Q4_0.gguf -p "Building a visually appealing website can be done in ten simple steps:" -n 64 -t 2
+
+# Install jq
+
+sudo apt install jq -y
+
+# Start the server
+
+./llama-server -m llama-2-7b-chat.Q4_0_8_8.gguf --port 8080
+
+### In the second terminal
+
+# Access the API using curl
+
+bash ./curl-test.sh
+
+# Install OpenAI Python package
+
+source llama.cpp/venv/bin/activate
+pip install openai
+
+# Run the Python file
+
+python ./python-test.py
