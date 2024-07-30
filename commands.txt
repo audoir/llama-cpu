@@ -11,6 +11,7 @@ sudo apt install build-essential -y
 
 # Download and build llama.cpp
 
+cd ~
 git clone https://github.com/ggerganov/llama.cpp
 cd llama.cpp
 make GGML_NO_LLAMAFILE=1 -j$(nproc)
@@ -54,7 +55,8 @@ sudo apt install jq -y
 
 # Access the API using curl
 
-bash ./curl-test.sh
+cd ~
+bash ./llama-cpu/curl-test.sh
 
 # Install OpenAI Python package
 
@@ -63,4 +65,4 @@ pip install openai
 
 # Run the Python file
 
-python ./python-test.py
+python ./llama-cpu/python-test.py
